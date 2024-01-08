@@ -4080,8 +4080,7 @@ listTables(const char *tabtypes, const char *pattern, bool verbose, bool showSys
 	appendPQExpBufferStr(&buf, ")\n");
 
 	if (!showSystem && !pattern)
-		appendPQExpBufferStr(&buf, "      AND n.nspname <> 'pg_catalog'\n"
-							 "      AND n.nspname !~ '^pg_toast'\n"
+		appendPQExpBufferStr(&buf, "      AND n.nspname !~ '^pg_'\n"
 							 "      AND n.nspname <> 'information_schema'\n");
 
 	if (!validateSQLNamePattern(&buf, pattern, true, false,
@@ -4299,8 +4298,7 @@ listPartitionedTables(const char *reltypes, const char *pattern, bool verbose)
 						 " AND NOT c.relispartition\n" : "");
 
 	if (!pattern)
-		appendPQExpBufferStr(&buf, "      AND n.nspname <> 'pg_catalog'\n"
-							 "      AND n.nspname !~ '^pg_toast'\n"
+		appendPQExpBufferStr(&buf, "      AND n.nspname !~ '^pg_'\n"
 							 "      AND n.nspname <> 'information_schema'\n");
 
 	if (!validateSQLNamePattern(&buf, pattern, true, false,

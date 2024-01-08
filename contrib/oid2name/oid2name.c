@@ -488,7 +488,7 @@ sql_exec_dumpalltables(PGconn *conn, struct options *opts)
 			 opts->extended ? addfields : "",
 			 opts->indexes ? "," CppAsString2(RELKIND_INDEX) "," CppAsString2(RELKIND_SEQUENCE) : "",
 			 opts->systables ? "," CppAsString2(RELKIND_TOASTVALUE) : "",
-			 opts->systables ? "" : "n.nspname NOT IN ('pg_catalog', 'information_schema') AND n.nspname !~ '^pg_toast' AND");
+			 opts->systables ? "" : "n.nspname != 'information_schema' AND n.nspname !~ '^pg_' AND");
 
 	sql_exec(conn, todo, opts->quiet);
 }
