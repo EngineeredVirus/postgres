@@ -2655,8 +2655,8 @@ ReportGUCOption(struct config_generic *record)
  *
  * Returns true on success, false if the input unit is not recognized.
  */
-static bool
-convert_to_base_unit(double value, const char *unit,
+bool
+guc_convert_to_base_unit(double value, const char *unit,
 					 int base_unit, double *base_value)
 {
 	char		unitstr[MAX_UNIT_LEN + 1];
@@ -2713,8 +2713,8 @@ convert_to_base_unit(double value, const char *unit,
  * the value without loss.  For example, if the base unit is GUC_UNIT_KB, 1024
  * is converted to 1 MB, but 1025 is represented as 1025 kB.
  */
-static void
-convert_int_from_base_unit(int64 base_value, int base_unit,
+void
+guc_convert_int_from_base_unit(int64 base_value, int base_unit,
 						   int64 *value, const char **unit)
 {
 	const unit_conversion *table;
@@ -2755,8 +2755,8 @@ convert_int_from_base_unit(int64 base_value, int base_unit,
  * Same as above, except we have to do the math a bit differently, and
  * there's a possibility that we don't find any exact divisor.
  */
-static void
-convert_real_from_base_unit(double base_value, int base_unit,
+void
+guc_convert_real_from_base_unit(double base_value, int base_unit,
 							double *value, const char **unit)
 {
 	const unit_conversion *table;
@@ -2904,7 +2904,7 @@ parse_int(const char *value, int *result, int flags, const char **hintmsg)
 		if ((flags & GUC_UNIT) == 0)
 			return false;		/* this setting does not accept a unit */
 
-		if (!convert_to_base_unit(val,
+		if (!guc_convert_to_base_unit(val,
 								  endptr, (flags & GUC_UNIT),
 								  &val))
 		{
@@ -2977,7 +2977,7 @@ parse_real(const char *value, double *result, int flags, const char **hintmsg)
 		if ((flags & GUC_UNIT) == 0)
 			return false;		/* this setting does not accept a unit */
 
-		if (!convert_to_base_unit(val,
+		if (!guc_convert_to_base_unit(val,
 								  endptr, (flags & GUC_UNIT),
 								  &val))
 		{
@@ -5491,7 +5491,7 @@ ShowGUCOption(struct config_generic *record, bool use_units, int guc_val_field)
 					const char *unit;
 
 					if (use_units && result > 0 && (record->flags & GUC_UNIT))
-						convert_int_from_base_unit(result,
+						guc_convert_int_from_base_unit(result,
 												   record->flags & GUC_UNIT,
 												   &result, &unit);
 					else
@@ -5517,7 +5517,7 @@ ShowGUCOption(struct config_generic *record, bool use_units, int guc_val_field)
 					const char *unit;
 
 					if (use_units && result > 0 && (record->flags & GUC_UNIT))
-						convert_real_from_base_unit(result,
+						guc_convert_real_from_base_unit(result,
 													record->flags & GUC_UNIT,
 													&result, &unit);
 					else

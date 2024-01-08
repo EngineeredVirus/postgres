@@ -430,6 +430,13 @@ extern pg_nodiscard void *guc_realloc(int elevel, void *old, size_t size);
 extern char *guc_strdup(int elevel, const char *src);
 extern void guc_free(void *ptr);
 
+extern bool guc_convert_to_base_unit(double value, const char *unit,
+								 int base_unit, double *base_value);
+extern void guc_convert_int_from_base_unit(int64 base_value, int base_unit,
+									   int64 *value, const char **unit);
+extern void guc_convert_real_from_base_unit(double base_value, int base_unit,
+										double *value, const char **unit);
+
 #ifdef EXEC_BACKEND
 extern void write_nondefault_variables(GucContext context);
 extern void read_nondefault_variables(void);
