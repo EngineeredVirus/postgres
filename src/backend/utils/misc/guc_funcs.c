@@ -493,7 +493,7 @@ ShowAllGUCConfig(DestReceiver *dest)
 		/* assign to the values array */
 		values[0] = PointerGetDatum(cstring_to_text(conf->name));
 
-		setting = ShowGUCOption(conf, true);
+		setting = ShowGUCOption(conf, true, GUC_VAL_VARIABLE);
 		if (setting)
 		{
 			values[1] = PointerGetDatum(cstring_to_text(setting));
@@ -601,7 +601,7 @@ GetConfigOptionValues(struct config_generic *conf, const char **values)
 	values[0] = conf->name;
 
 	/* setting: use ShowGUCOption in order to avoid duplicating the logic */
-	values[1] = ShowGUCOption(conf, false);
+	values[1] = ShowGUCOption(conf, false, GUC_VAL_VARIABLE);
 
 	/* unit, if any (NULL is fine) */
 	values[2] = get_config_unit_name(conf->flags);
@@ -629,7 +629,7 @@ GetConfigOptionValues(struct config_generic *conf, const char **values)
 	{
 		case PGC_BOOL:
 			{
-				struct config_bool *lconf = (struct config_bool *) conf;
+				// struct config_bool *lconf = (struct config_bool *) conf;
 
 				/* min_val */
 				values[9] = NULL;
@@ -641,66 +641,76 @@ GetConfigOptionValues(struct config_generic *conf, const char **values)
 				values[11] = NULL;
 
 				/* boot_val */
-				values[12] = pstrdup(lconf->boot_val ? "on" : "off");
+				// values[12] = pstrdup(lconf->boot_val ? "on" : "off");
+				values[12] = ShowGUCOption(conf, false, GUC_VAL_BOOT);
 
 				/* reset_val */
-				values[13] = pstrdup(lconf->reset_val ? "on" : "off");
+				// values[13] = pstrdup(lconf->reset_val ? "on" : "off");
+				values[13] = ShowGUCOption(conf, false, GUC_VAL_RESET);
 			}
 			break;
 
 		case PGC_INT:
 			{
-				struct config_int *lconf = (struct config_int *) conf;
+				// struct config_int *lconf = (struct config_int *) conf;
 
 				/* min_val */
-				snprintf(buffer, sizeof(buffer), "%d", lconf->min);
-				values[9] = pstrdup(buffer);
+				// snprintf(buffer, sizeof(buffer), "%d", lconf->min);
+				// values[9] = pstrdup(buffer);
+				values[9] = ShowGUCOption(conf, false, GUC_VAL_MIN);
 
 				/* max_val */
-				snprintf(buffer, sizeof(buffer), "%d", lconf->max);
-				values[10] = pstrdup(buffer);
+				// snprintf(buffer, sizeof(buffer), "%d", lconf->max);
+				// values[10] = pstrdup(buffer);
+				values[10] = ShowGUCOption(conf, false, GUC_VAL_MAX);
 
 				/* enumvals */
 				values[11] = NULL;
 
 				/* boot_val */
-				snprintf(buffer, sizeof(buffer), "%d", lconf->boot_val);
-				values[12] = pstrdup(buffer);
+				// snprintf(buffer, sizeof(buffer), "%d", lconf->boot_val);
+				// values[12] = pstrdup(buffer);
+				values[12] = ShowGUCOption(conf, false, GUC_VAL_BOOT);
 
 				/* reset_val */
-				snprintf(buffer, sizeof(buffer), "%d", lconf->reset_val);
-				values[13] = pstrdup(buffer);
+				// snprintf(buffer, sizeof(buffer), "%d", lconf->reset_val);
+				// values[13] = pstrdup(buffer);
+				values[13] = ShowGUCOption(conf, false, GUC_VAL_RESET);
 			}
 			break;
 
 		case PGC_REAL:
 			{
-				struct config_real *lconf = (struct config_real *) conf;
+				// struct config_real *lconf = (struct config_real *) conf;
 
 				/* min_val */
-				snprintf(buffer, sizeof(buffer), "%g", lconf->min);
-				values[9] = pstrdup(buffer);
+				// snprintf(buffer, sizeof(buffer), "%g", lconf->min);
+				// values[9] = pstrdup(buffer);
+				values[9] = ShowGUCOption(conf, false, GUC_VAL_MIN);
 
 				/* max_val */
-				snprintf(buffer, sizeof(buffer), "%g", lconf->max);
-				values[10] = pstrdup(buffer);
+				// snprintf(buffer, sizeof(buffer), "%g", lconf->max);
+				// values[10] = pstrdup(buffer);
+				values[10] = ShowGUCOption(conf, false, GUC_VAL_MAX);
 
 				/* enumvals */
 				values[11] = NULL;
 
 				/* boot_val */
-				snprintf(buffer, sizeof(buffer), "%g", lconf->boot_val);
-				values[12] = pstrdup(buffer);
+				// snprintf(buffer, sizeof(buffer), "%g", lconf->boot_val);
+				// values[12] = pstrdup(buffer);
+				values[12] = ShowGUCOption(conf, false, GUC_VAL_BOOT);
 
 				/* reset_val */
-				snprintf(buffer, sizeof(buffer), "%g", lconf->reset_val);
-				values[13] = pstrdup(buffer);
+				// snprintf(buffer, sizeof(buffer), "%g", lconf->reset_val);
+				// values[13] = pstrdup(buffer);
+				values[13] = ShowGUCOption(conf, false, GUC_VAL_RESET);
 			}
 			break;
 
 		case PGC_STRING:
 			{
-				struct config_string *lconf = (struct config_string *) conf;
+				// struct config_string *lconf = (struct config_string *) conf;
 
 				/* min_val */
 				values[9] = NULL;
@@ -712,22 +722,24 @@ GetConfigOptionValues(struct config_generic *conf, const char **values)
 				values[11] = NULL;
 
 				/* boot_val */
-				if (lconf->boot_val == NULL)
-					values[12] = NULL;
-				else
-					values[12] = pstrdup(lconf->boot_val);
+				// if (lconf->boot_val == NULL)
+				// 	values[12] = NULL;
+				// else
+				// 	values[12] = pstrdup(lconf->boot_val);
+				values[12] = ShowGUCOption(conf, false, GUC_VAL_BOOT);
 
 				/* reset_val */
-				if (lconf->reset_val == NULL)
-					values[13] = NULL;
-				else
-					values[13] = pstrdup(lconf->reset_val);
+				// if (lconf->reset_val == NULL)
+				// 	values[13] = NULL;
+				// else
+				// 	values[13] = pstrdup(lconf->reset_val);
+				values[13] = ShowGUCOption(conf, false, GUC_VAL_RESET);
 			}
 			break;
 
 		case PGC_ENUM:
 			{
-				struct config_enum *lconf = (struct config_enum *) conf;
+				// struct config_enum *lconf = (struct config_enum *) conf;
 
 				/* min_val */
 				values[9] = NULL;
@@ -745,12 +757,14 @@ GetConfigOptionValues(struct config_generic *conf, const char **values)
 													 "{\"", "\"}", "\",\"");
 
 				/* boot_val */
-				values[12] = pstrdup(config_enum_lookup_by_value(lconf,
-																 lconf->boot_val));
+				// values[12] = pstrdup(config_enum_lookup_by_value(lconf,
+				// 												 lconf->boot_val));
+				values[12] = ShowGUCOption(conf, false, GUC_VAL_BOOT);
 
 				/* reset_val */
-				values[13] = pstrdup(config_enum_lookup_by_value(lconf,
-																 lconf->reset_val));
+				// values[13] = pstrdup(config_enum_lookup_by_value(lconf,
+				// 												 lconf->reset_val));
+				values[13] = ShowGUCOption(conf, false, GUC_VAL_RESET);
 			}
 			break;
 

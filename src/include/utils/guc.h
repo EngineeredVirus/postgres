@@ -188,7 +188,23 @@ typedef void (*GucRealAssignHook) (double newval, void *extra);
 typedef void (*GucStringAssignHook) (const char *newval, void *extra);
 typedef void (*GucEnumAssignHook) (int newval, void *extra);
 
-typedef const char *(*GucShowHook) (void);
+
+#define GUC_VAL_BOOT       		 1
+#define GUC_VAL_MAX        		 2
+#define GUC_VAL_MIN        		 4
+#define GUC_VAL_RESET			 8
+#define GUC_VAL_VARIABLE		16
+
+union config_var_val
+{
+	bool		boolval;
+	int			intval;
+	double		realval;
+	char	   *stringval;
+	int			enumval;
+};
+
+typedef const char *(*GucShowHook) (union config_var_val);
 
 /*
  * Miscellaneous

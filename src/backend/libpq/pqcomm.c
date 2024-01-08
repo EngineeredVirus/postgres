@@ -1954,7 +1954,7 @@ assign_tcp_keepalives_idle(int newval, void *extra)
  * GUC show_hook for tcp_keepalives_idle
  */
 const char *
-show_tcp_keepalives_idle(void)
+show_tcp_keepalives_idle(union config_var_val val)
 {
 	/* See comments in assign_tcp_keepalives_idle */
 	static char nbuf[16];
@@ -1977,7 +1977,7 @@ assign_tcp_keepalives_interval(int newval, void *extra)
  * GUC show_hook for tcp_keepalives_interval
  */
 const char *
-show_tcp_keepalives_interval(void)
+show_tcp_keepalives_interval(union config_var_val val)
 {
 	/* See comments in assign_tcp_keepalives_idle */
 	static char nbuf[16];
@@ -2000,7 +2000,7 @@ assign_tcp_keepalives_count(int newval, void *extra)
  * GUC show_hook for tcp_keepalives_count
  */
 const char *
-show_tcp_keepalives_count(void)
+show_tcp_keepalives_count(union config_var_val val)
 {
 	/* See comments in assign_tcp_keepalives_idle */
 	static char nbuf[16];
@@ -2023,7 +2023,7 @@ assign_tcp_user_timeout(int newval, void *extra)
  * GUC show_hook for tcp_user_timeout
  */
 const char *
-show_tcp_user_timeout(void)
+show_tcp_user_timeout(union config_var_val val)
 {
 	/* See comments in assign_tcp_keepalives_idle */
 	static char nbuf[16];

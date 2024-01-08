@@ -387,7 +387,7 @@ assign_timezone(const char *newval, void *extra)
  * show_timezone: GUC show_hook for timezone
  */
 const char *
-show_timezone(void)
+show_timezone(union config_var_val val)
 {
 	const char *tzn;
 
@@ -460,12 +460,12 @@ assign_log_timezone(const char *newval, void *extra)
  * show_log_timezone: GUC show_hook for log_timezone
  */
 const char *
-show_log_timezone(void)
+show_log_timezone(union config_var_val val)
 {
 	const char *tzn;
 
 	/* Always show the zone's canonical name */
-	tzn = pg_get_timezone_name(log_timezone);
+	tzn = pg_get_timezone_name(session_timezone);
 
 	if (tzn != NULL)
 		return tzn;
@@ -666,7 +666,7 @@ assign_random_seed(double newval, void *extra)
 }
 
 const char *
-show_random_seed(void)
+show_random_seed(union config_var_val val)
 {
 	return "unavailable";
 }
@@ -1000,7 +1000,7 @@ assign_role(const char *newval, void *extra)
 }
 
 const char *
-show_role(void)
+show_role(union config_var_val val)
 {
 	/*
 	 * Check whether SET ROLE is active; if not return "none".  This is a
@@ -1013,7 +1013,7 @@ show_role(void)
 		return "none";
 
 	/* Otherwise we can just use the GUC string */
-	return role_string ? role_string : "none";
+	return val.stringval ? val.stringval : "none";
 }
 
 
@@ -1130,11 +1130,10 @@ assign_maintenance_io_concurrency(int newval, void *extra)
  * GUC show_hook for data_directory_mode
  */
 const char *
-show_data_directory_mode(void)
+show_data_directory_mode(union config_var_val val)
 {
 	static char buf[12];
-
-	snprintf(buf, sizeof(buf), "%04o", data_directory_mode);
+	snprintf(buf, sizeof(buf), "%04o", val.intval);
 	return buf;
 }
 
@@ -1142,11 +1141,10 @@ show_data_directory_mode(void)
  * GUC show_hook for log_file_mode
  */
 const char *
-show_log_file_mode(void)
+show_log_file_mode(union config_var_val val)
 {
 	static char buf[12];
-
-	snprintf(buf, sizeof(buf), "%04o", Log_file_mode);
+	snprintf(buf, sizeof(buf), "%04o", val.intval);
 	return buf;
 }
 
@@ -1154,11 +1152,10 @@ show_log_file_mode(void)
  * GUC show_hook for unix_socket_permissions
  */
 const char *
-show_unix_socket_permissions(void)
+show_unix_socket_permissions(union config_var_val val)
 {
 	static char buf[12];
-
-	snprintf(buf, sizeof(buf), "%04o", Unix_socket_permissions);
+	snprintf(buf, sizeof(buf), "%04o", val.intval);
 	return buf;
 }
 

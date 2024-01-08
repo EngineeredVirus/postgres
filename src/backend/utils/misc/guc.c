@@ -265,6 +265,11 @@ static bool call_string_check_hook(struct config_string *conf, char **newval,
 static bool call_enum_check_hook(struct config_enum *conf, int *newval,
 								 void **extra, GucSource source, int elevel);
 
+static bool GUCOption_bool(struct config_bool *conf, int guc_val_field);
+static int GUCOption_enum(struct config_enum *conf, int guc_val_field);
+static int GUCOption_int(struct config_int *conf, int guc_val_field);
+static double GUCOption_real(struct config_real *conf, int guc_val_field);
+static char *GUCOption_string(struct config_string *conf, int guc_val_field);
 
 /*
  * This function handles both actual config file (re)loads and execution of
@@ -2616,7 +2621,7 @@ ReportChangedGUCOptions(void)
 static void
 ReportGUCOption(struct config_generic *record)
 {
-	char	   *val = ShowGUCOption(record, false);
+	char	   *val = ShowGUCOption(record, false, GUC_VAL_VARIABLE);
 
 	if (record->last_reported == NULL ||
 		strcmp(val, record->last_reported) != 0)
@@ -5370,7 +5375,7 @@ GetConfigOptionByName(const char *name, const char **varname, bool missing_ok)
 	if (varname)
 		*varname = record->name;
 
-	return ShowGUCOption(record, true);
+	return ShowGUCOption(record, true, GUC_VAL_VARIABLE);
 }
 
 /*
@@ -5380,38 +5385,109 @@ GetConfigOptionByName(const char *name, const char **varname, bool missing_ok)
  * use_units is true; else you just get the raw number.
  * The result string is palloc'd.
  */
+bool
+GUCOption_bool(struct config_bool *conf, int guc_val_field)
+{
+	if (guc_val_field == GUC_VAL_BOOT)
+		return conf->boot_val;
+	else if (guc_val_field == GUC_VAL_RESET)
+		return conf->reset_val;
+
+	Assert(conf->variable);
+	return *conf->variable;
+}
+
+int
+GUCOption_enum(struct config_enum *conf, int guc_val_field)
+{
+	if (guc_val_field == GUC_VAL_BOOT)
+		return conf->boot_val;
+	else if (guc_val_field == GUC_VAL_RESET)
+		return conf->reset_val;
+
+	Assert(conf->variable);
+	return *conf->variable;
+}
+
+int
+GUCOption_int(struct config_int *conf, int guc_val_field)
+{
+	if (guc_val_field == GUC_VAL_BOOT)
+		return conf->boot_val;
+	else if (guc_val_field == GUC_VAL_MAX)
+		return conf->max;
+	else if (guc_val_field == GUC_VAL_MIN)
+		return conf->min;
+	else if (guc_val_field == GUC_VAL_RESET)
+		return conf->reset_val;
+
+	Assert(conf->variable);
+	return *conf->variable;
+}
+
+double
+GUCOption_real(struct config_real *conf, int guc_val_field)
+{
+	if (guc_val_field == GUC_VAL_BOOT)
+		return conf->boot_val;
+	else if (guc_val_field == GUC_VAL_MAX)
+		return conf->max;
+	else if (guc_val_field == GUC_VAL_MIN)
+		return conf->min;
+	else if (guc_val_field == GUC_VAL_RESET)
+		return conf->reset_val;
+
+	Assert(conf->variable);
+	return *conf->variable;
+}
+
 char *
-ShowGUCOption(struct config_generic *record, bool use_units)
+GUCOption_string(struct config_string *conf, int guc_val_field)
+{
+	if (guc_val_field == GUC_VAL_BOOT)
+		return (char *)conf->boot_val;
+	else if (guc_val_field == GUC_VAL_RESET)
+		return (char *)conf->reset_val;
+
+	Assert(conf->variable);
+	return *conf->variable;
+}
+
+char *
+ShowGUCOption(struct config_generic *record, bool use_units, int guc_val_field)
 {
 	char		buffer[256];
 	const char *val;
+	union config_var_val var_val;
 
 	switch (record->vartype)
 	{
 		case PGC_BOOL:
 			{
 				struct config_bool *conf = (struct config_bool *) record;
+				var_val.boolval = GUCOption_bool(conf, guc_val_field);
 
 				if (conf->show_hook)
-					val = conf->show_hook();
+					val = conf->show_hook(var_val);
 				else
-					val = *conf->variable ? "on" : "off";
+					val = var_val.boolval ? "on" : "off";
 			}
 			break;
 
 		case PGC_INT:
 			{
 				struct config_int *conf = (struct config_int *) record;
+				var_val.intval = GUCOption_int(conf, guc_val_field);
 
 				if (conf->show_hook)
-					val = conf->show_hook();
+					val = conf->show_hook(var_val);
 				else
 				{
 					/*
 					 * Use int64 arithmetic to avoid overflows in units
 					 * conversion.
 					 */
-					int64		result = *conf->variable;
+					int64		result = var_val.intval;
 					const char *unit;
 
 					if (use_units && result > 0 && (record->flags & GUC_UNIT))
@@ -5431,12 +5507,13 @@ ShowGUCOption(struct config_generic *record, bool use_units)
 		case PGC_REAL:
 			{
 				struct config_real *conf = (struct config_real *) record;
+				var_val.realval = GUCOption_real(conf, guc_val_field);
 
 				if (conf->show_hook)
-					val = conf->show_hook();
+					val = conf->show_hook(var_val);
 				else
 				{
-					double		result = *conf->variable;
+					double		result = var_val.realval;
 					const char *unit;
 
 					if (use_units && result > 0 && (record->flags & GUC_UNIT))
@@ -5456,11 +5533,12 @@ ShowGUCOption(struct config_generic *record, bool use_units)
 		case PGC_STRING:
 			{
 				struct config_string *conf = (struct config_string *) record;
+				var_val.stringval = GUCOption_string(conf, guc_val_field);
 
 				if (conf->show_hook)
-					val = conf->show_hook();
-				else if (*conf->variable && **conf->variable)
-					val = *conf->variable;
+					val = conf->show_hook(var_val);
+				else if (var_val.stringval && *var_val.stringval)
+					val = var_val.stringval;
 				else
 					val = "";
 			}
@@ -5469,11 +5547,12 @@ ShowGUCOption(struct config_generic *record, bool use_units)
 		case PGC_ENUM:
 			{
 				struct config_enum *conf = (struct config_enum *) record;
+				var_val.enumval = GUCOption_enum(conf, guc_val_field);
 
 				if (conf->show_hook)
-					val = conf->show_hook();
+					val = conf->show_hook(var_val);
 				else
-					val = config_enum_lookup_by_value(conf, *conf->variable);
+					val = config_enum_lookup_by_value(conf, var_val.enumval);
 			}
 			break;
 

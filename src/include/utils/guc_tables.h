@@ -29,15 +29,6 @@ enum config_type
 	PGC_ENUM,
 };
 
-union config_var_val
-{
-	bool		boolval;
-	int			intval;
-	double		realval;
-	char	   *stringval;
-	int			enumval;
-};
-
 /*
  * The actual value of a GUC variable can include a malloc'd opaque struct
  * "extra", which is created by its check_hook and used by its assign_hook.
@@ -301,7 +292,7 @@ extern struct config_generic *find_option(const char *name,
 extern struct config_generic **get_explain_guc_options(int *num);
 
 /* get string value of variable */
-extern char *ShowGUCOption(struct config_generic *record, bool use_units);
+extern char *ShowGUCOption(struct config_generic *record, bool use_units, int guc_val_field);
 
 /* get whether or not the GUC variable is visible to current user */
 extern bool ConfigOptionIsVisible(struct config_generic *conf);

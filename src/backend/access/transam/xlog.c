@@ -4601,7 +4601,7 @@ InitializeWalConsistencyChecking(void)
  * GUC show_hook for archive_command
  */
 const char *
-show_archive_command(void)
+show_archive_command(union config_var_val val)
 {
 	if (XLogArchivingActive())
 		return XLogArchiveCommand;
@@ -4613,7 +4613,7 @@ show_archive_command(void)
  * GUC show_hook for in_hot_standby
  */
 const char *
-show_in_hot_standby(void)
+show_in_hot_standby(union config_var_val val)
 {
 	/*
 	 * We display the actual state based on shared memory, so that this GUC
